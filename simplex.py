@@ -2,16 +2,18 @@ import numpy as np
 
 
 class Simplex:
-    def __init__(self, tableau, solve_type):
+    def __init__(self, tableau, solve_type, variables):
         self.tableau = tableau
+        self.solution = {}
         self.solve_type = solve_type
         self.logs = [[0, self.tableau.copy(), 0]]
-
+        self.variables = variables
 
     def solve_maxim_step(self):
         """
         Calculates a single step of the simplex method, and returns the tableau and other information to be saved in the
         logs.
+        :returns: (whether the problem is solved, the logs of the step)
         """
         # Find the most negative entry in the objective function row, and it's index.
         most_negative = min(self.tableau[-1])
@@ -60,7 +62,7 @@ class Simplex:
 
         # Check if solved, by seeing if there are still negative values in the objective row.
 
-        step = np.array([most_negative,most_negative_index, smallest_ratio, smallest_ratio_index, pivot])
+        step = np.array([most_negative, most_negative_index, smallest_ratio, smallest_ratio_index, pivot])
         most_negative = min(self.tableau[-1])
         solved = False
         if most_negative >= 0:
@@ -68,22 +70,41 @@ class Simplex:
 
         return solved, step
 
-
-
     def solve_max(self):
         """
         Iterates through the Simplex method using the step function, and ends once a solved state is detected.
         Saves the logs each iteration to the Simplex.logs object.
-        :returns: Logs containing the tableau
+        :returns: The solution for the x variables
         """
         solved = False
-        idx=1
+        idx = 1
         while not solved:
-            print("Next iteration...")
             solved, step = self.solve_maxim_step()
-            print(self.tableau)
             self.logs.append([idx, self.tableau.copy(), step])
+        self.find_solution()
+
+        return self.solution
+
+    def find_solution(self):
+        """
+        Calculates the solution(s) from the finished Tableau
+        :return: Whether a single solution or multiple optima were found
+        """
+
+        null_xs = []
+
+        # Transposes the Tableau, to extract the columns.
+
+        for idx, column in enumerate(np.transpose(self.tableau)):
 
 
+            if self.variables[idx][0] == 'x':
+                if set(abs(column)) == {1, 0} and np.sum(abs(column)) == 1:
+                    index = np.where(column == (1 or -1))
+                    self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
+                else:
+                    null_xs.append(self.variables[idx])
+                    self.solution[self.variables[idx]] = 0
 
-        print("Successfully solved.")
+        self.solution['z'] = self.tableau[-1][-1]
+        print(self.solution)

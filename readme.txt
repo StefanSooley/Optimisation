@@ -3,6 +3,7 @@ It automatically parses through the lines and converts the information into a ta
 Some important things to note are:
 - There must be spaces between variables and +/-/=/≤/≥ operators
 - z must have coefficient of 1
+- Coefficients must be integers
 
 
 Example input files:
