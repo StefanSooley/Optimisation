@@ -4,6 +4,13 @@ import numpy as np
 # Read the line and put the coefficients into a dictionary
 
 def line_to_dict(line, obj=False):
+    """
+    Parses through a line of the input and collects information about what the variables, coefficients and operators
+    are.
+    :param line: The input line, as a list of strings.
+    :param obj: Whether the input line is the objective function or a constraint, as a bool.
+    :return: A dictionary of the variable names to their values.
+    """
     x_ = {}
     for idx, char in enumerate(line):
         try:
@@ -44,6 +51,10 @@ def line_to_dict(line, obj=False):
 # Reads the text file and returns a tableau
 
 def read_txt():
+    """
+    Reads a file input.txt in the current working directory and formats it into a tableau to be used in the solver.
+    :return: The tableau and the problem type (maximum or minimum) as a tuple.
+    """
     with open('input.txt') as f:
         lines = f.readlines()
     # Converting the lines into a list
@@ -107,3 +118,30 @@ def read_txt():
     tableau = np.append(tableau, [obj_row], axis=0).astype(float)
     return tableau, solve
 
+
+def save_log(logs, init_tableau, filename='output.txt'):
+    """
+
+    :param init_tableau:
+    :param logs:
+    :param filename:
+    """
+    print("=========================")
+    logs = np.array(logs, dtype=object)
+    idxs, tableau, step = logs[:, 0], logs[:, 1], logs[1:, 2]
+
+    step = np.array(step.tolist())
+    most_negative, most_negative_index, smallest_ratio, smallest_ratio_index, pivot = [step[:, i] for i in range(5)]
+
+    initial_message = "The initial Tableau was encoded as:\n"
+    message = initial_message + np.array_str(tableau[0])
+    for i in range(len(idxs)-1):
+        s1 = (f"The most negative value in the objective function row is %f. Dividing the solution column by each entry\
+              and finding the smallest non-zero value as %f " % (most_negative[i], smallest_ratio[i]))
+
+    print(s1)
+
+
+
+    with open(filename, "w") as text_file:
+        text_file.write(message)
