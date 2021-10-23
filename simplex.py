@@ -5,11 +5,14 @@ class Simplex:
     def __init__(self, tableau, solve_type):
         self.tableau = tableau
         self.solve_type = solve_type
+        self.logs = [[0, self.tableau.copy(), 0]]
 
-    # Solves a single step of maximisation Simplex.
 
     def solve_maxim_step(self):
-
+        """
+        Calculates a single step of the simplex method, and returns the tableau and other information to be saved in the
+        logs.
+        """
         # Find the most negative entry in the objective function row, and it's index.
         most_negative = min(self.tableau[-1])
 
@@ -22,7 +25,7 @@ class Simplex:
 
         # Find the ratios of the Solution column
         # Since we will be dividing by zero in some cases, I will turn off the warning message when this happens.
-        np.seterr(divide='ignore')
+        np.seterr(divide='ignore', invalid='ignore')
         ratios = self.tableau[:, -1] / self.tableau[:, most_negative_index]
 
         # Make any zeros or negatives into infinities, so they are ignored (will never be the smallest value).
@@ -32,7 +35,7 @@ class Simplex:
         smallest_ratio_index = int(np.where(ratios == np.nanmin(ratios))[0])
 
         # This gives us the pivot value as self.tableau[smallest_ratio_index][most_negative_index]
-
+        pivot = self.tableau[smallest_ratio_index][most_negative_index].copy()
         for idx, row in enumerate(self.tableau):
 
             # If we are not in the pivot row and there isn't already a zero, we need to make a zero.
@@ -57,19 +60,30 @@ class Simplex:
 
         # Check if solved, by seeing if there are still negative values in the objective row.
 
+        step = np.array([most_negative,most_negative_index, smallest_ratio, smallest_ratio_index, pivot])
         most_negative = min(self.tableau[-1])
         solved = False
         if most_negative >= 0:
             solved = True
 
-        return solved
+        return solved, step
 
-    # Runs the maximisation Simplex algorithm until the problem is solved.
+
 
     def solve_max(self):
+        """
+        Iterates through the Simplex method using the step function, and ends once a solved state is detected.
+        Saves the logs each iteration to the Simplex.logs object.
+        :returns: Logs containing the tableau
+        """
         solved = False
+        idx=1
         while not solved:
             print("Next iteration...")
-            solved = self.solve_maxim_step()
+            solved, step = self.solve_maxim_step()
             print(self.tableau)
+            self.logs.append([idx, self.tableau.copy(), step])
+
+
+
         print("Successfully solved.")
