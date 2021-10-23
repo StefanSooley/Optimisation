@@ -143,11 +143,12 @@ def save_log(logs, top_row, solution, filename='output.txt'):
     initial_message = "The initial Tableau was encoded as:\n\n"
     rows = ['Equation ' + str(i + 1) for i in range(len(tableau[0]) - 1)] + ['Objective Function']
     df = pd.DataFrame(data=tableau[0], columns=top_row, index=rows).to_string()
-    # print(df)
+
     message = initial_message + df + '\n\n\n'
     for i in range(len(idxs) - 1):
         s1 = (f"The most negative value in the objective function row is %f, making column %i the pivot column. "
-              f"\nAfter dividing the solution column by each corresponding value in the pivot column, the smallest non-zero value \nwas %f, making row %i the pivot row."
+              f"\nAfter dividing the solution column by each corresponding value in the pivot column, the smallest "
+              f"non-zero value \nwas %f, making row %i the pivot row. "
               f"\nThe pivot is therefore %f at [%i, %i]. After making the pivot column a unit vector, the resulting "
               f"tableau is:\n\n" % (
                   most_negative[i], most_negative_index[i] + 1, smallest_ratio[i], smallest_ratio_index[i] + 1,
@@ -163,3 +164,4 @@ def save_log(logs, top_row, solution, filename='output.txt'):
 
     with open(filename, "w") as text_file:
         text_file.write(message)
+    print("logs saved to "+filename)

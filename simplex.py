@@ -93,12 +93,13 @@ class Simplex:
 
         null_xs = []
 
-        # Transposes the Tableau, to extract the columns.
-
+        # Transposes the Tableau, to extract the columns, and iterates over them to find the solution columns.
         for idx, column in enumerate(np.transpose(self.tableau)):
 
-
+            # If the column is an x variable
             if self.variables[idx][0] == 'x':
+                # If the set of the absolute values in each column is just {1,0} and the sum  is 1, it is a solution
+                # case, and add these values to the solution dictionary as a single solution.
                 if set(abs(column)) == {1, 0} and np.sum(abs(column)) == 1:
                     index = np.where(column == (1 or -1))
                     self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
@@ -106,5 +107,6 @@ class Simplex:
                     null_xs.append(self.variables[idx])
                     self.solution[self.variables[idx]] = 0
 
+        # The bottom right value is always the solution.
         self.solution['z'] = self.tableau[-1][-1]
         print(self.solution)
