@@ -117,11 +117,19 @@ def read_txt():
         for jdx, j in enumerate(i):
             tableau[idx][jdx] = coeffs_lists[idx][j]
 
+    print()
+
     # Adds the objective function to the bottom of the tableau.
-    obj_xs = [-1 * obj_func[i] for i in x_strings]
+    obj_xs = [0]*len(x_strings)
+    for idx, x in enumerate(x_strings):
+        try:
+            obj_xs[idx] = -1*obj_func[x]
+        except:
+            obj_xs[idx] = 0
+    #obj_xs = [-1 * obj_func[i] for i in x_strings]
     obj_row = obj_xs + [0] * len(s_strings) + [1, 0]
     tableau = np.append(tableau, [obj_row], axis=0).astype(float)
-
+    print(tableau)
     return tableau, solve, top_row
 
 

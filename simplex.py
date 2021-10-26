@@ -34,7 +34,11 @@ class Simplex:
         ratios = [i if i > 0 else np.inf for i in ratios]
         smallest_ratio = np.nanmin(ratios)
 
-        smallest_ratio_index = int(np.where(ratios == np.nanmin(ratios))[0])
+        smallest_ratio_index = np.where(ratios == np.nanmin(ratios))[0]
+        if len(smallest_ratio_index) > 1:
+            smallest_ratio_index = int(smallest_ratio_index[0])
+        else:
+            smallest_ratio_index = int(smallest_ratio_index)
 
         # This gives us the pivot value as self.tableau[smallest_ratio_index][most_negative_index]
         pivot = self.tableau[smallest_ratio_index][most_negative_index].copy()
@@ -103,8 +107,9 @@ class Simplex:
                 if set(abs(column)) == {1, 0} and np.sum(abs(column)) == 1:
                     index = np.where(column == (1 or -1))
                     self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
+                elif column[-1] == 0:
+                    print("There is another solution")
                 else:
-                    null_xs.append(self.variables[idx])
                     self.solution[self.variables[idx]] = 0
 
         # The bottom right value is always the solution.
