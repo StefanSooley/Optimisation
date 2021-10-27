@@ -5,11 +5,14 @@ class Simplex:
     def __init__(self, tableau, solve_type, variables):
         self.tableau = tableau
         self.solution = {}
+        self.solution_set = []
         self.solve_type = solve_type
         self.logs = [[0, self.tableau.copy(), 0]]
         self.variables = variables
+        self.solution_cols = []
+        self.optima_idxs = []
 
-    def solve_maxim_step(self):
+    def solve_maxim_step(self, manual_col=-1):
         """
         Calculates a single step of the simplex method, and returns the tableau and other information to be saved in the
         logs.
@@ -24,6 +27,12 @@ class Simplex:
             most_negative_index = int(most_negative_index[0])
         else:
             most_negative_index = int(most_negative_index)
+
+        # If we manually want to force a column to pivot around (if there are multiple optima), then we use the
+        # column passed as an argument.
+
+        if manual_col >= 0:
+            most_negative_index = manual_col
 
         # Find the ratios of the Solution column
         # Since we will be dividing by zero in some cases, I will turn off the warning message when this happens.
@@ -71,7 +80,6 @@ class Simplex:
         solved = False
         if most_negative >= 0:
             solved = True
-
         return solved, step
 
     def solve_max(self):
@@ -84,34 +92,52 @@ class Simplex:
         idx = 1
         while not solved:
             solved, step = self.solve_maxim_step()
-            self.logs.append([idx, self.tableau.copy(), step])
+            self.logs.append([0, self.tableau.copy(), step])
         self.find_solution()
 
-        return self.solution
+
+        return self.solution_set
 
     def find_solution(self):
         """
-        Calculates the solution(s) from the finished Tableau
+        Calculates the solution(s) from the finished Tableau.
         :return: Whether a single solution or multiple optima were found
         """
-
-        null_xs = []
 
         # Transposes the Tableau, to extract the columns, and iterates over them to find the solution columns.
         for idx, column in enumerate(np.transpose(self.tableau)):
 
             # If the column is an x variable
+
             if self.variables[idx][0] == 'x':
+
                 # If the set of the absolute values in each column is just {1,0} and the sum  is 1, it is a solution
                 # case, and add these values to the solution dictionary as a single solution.
+
                 if set(abs(column)) == {1, 0} and np.sum(abs(column)) == 1:
                     index = np.where(column == (1 or -1))
+                    self.solution_cols.append(idx)
                     self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
+
+                # In the case where it isn't a unit column, but the objective function row has a 0 (multiple optima)
+
                 elif column[-1] == 0:
-                    print("There is another solution")
+                    self.solution[self.variables[idx]] = 0
+                    self.optima_idxs.append(idx)
+
                 else:
                     self.solution[self.variables[idx]] = 0
 
         # The bottom right value is always the solution.
         self.solution['z'] = self.tableau[-1][-1]
-        print(self.solution)
+
+        # Add the solution that is found to the set of solutions
+        self.solution_set.append(self.solution.copy())
+
+        # Find the solutions for the other optima (if any)
+        for i in self.optima_idxs:
+            solved, step = self.solve_maxim_step(i)
+            self.optima_idxs.remove(i)
+            self.find_solution()
+            self.logs.append([1, self.tableau.copy(), step])
+

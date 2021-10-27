@@ -8,4 +8,4 @@ if __name__ == '__main__':
     problem = Simplex(init_tableau, solve_type, top_row)
     solution = problem.solve_max()
     logs = problem.logs
-    save_log(logs, top_row, solution, filename='output.txt')
+    save_logs(logs, top_row, solution, filename='output.txt')

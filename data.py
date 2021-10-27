@@ -103,7 +103,7 @@ def read_txt():
 
     # Calculates the number of xs and slack/surplus variables and constructs a list of the strings of each.
     num_xs = sum([1 if i[0] == 'x' else 0 for i in keys])
-    num_ss = sum([1 if i[0] == 's' else 0 for i in keys]) - 1
+    num_ss = sum([1 if i[0] == 's' else 0 for i in keys]) - 1  # The solution variable also starts with 's', so -1.
 
     x_strings = ['x' + str(i + 1) for i in range(num_xs)]
     s_strings = ['s' + str(i + 1) for i in range(num_ss)]
@@ -117,23 +117,21 @@ def read_txt():
         for jdx, j in enumerate(i):
             tableau[idx][jdx] = coeffs_lists[idx][j]
 
-    print()
-
     # Adds the objective function to the bottom of the tableau.
-    obj_xs = [0]*len(x_strings)
+    obj_xs = [0] * len(x_strings)
     for idx, x in enumerate(x_strings):
         try:
-            obj_xs[idx] = -1*obj_func[x]
+            obj_xs[idx] = -1 * obj_func[x]
         except:
             obj_xs[idx] = 0
-    #obj_xs = [-1 * obj_func[i] for i in x_strings]
+    # obj_xs = [-1 * obj_func[i] for i in x_strings]
     obj_row = obj_xs + [0] * len(s_strings) + [1, 0]
     tableau = np.append(tableau, [obj_row], axis=0).astype(float)
-    print(tableau)
+
     return tableau, solve, top_row
 
 
-def save_log(logs, top_row, solution, filename='output.txt'):
+def save_logs(logs, top_row, solution_set, filename='output.txt'):
     """
     Saves the logs and solution into the output file (with steps).
     :param top_row: The names of the variables for the top row of the tableau.
@@ -148,28 +146,56 @@ def save_log(logs, top_row, solution, filename='output.txt'):
     step = np.array(step.tolist())
     most_negative, most_negative_index, smallest_ratio, smallest_ratio_index, pivot = [step[:, i] for i in range(5)]
 
+
     initial_message = "The initial Tableau was encoded as:\n\n"
     rows = ['Equation ' + str(i + 1) for i in range(len(tableau[0]) - 1)] + ['Objective Function']
     df = pd.DataFrame(data=tableau[0], columns=top_row, index=rows).to_string()
-
     message = initial_message + df + '\n\n\n'
     for i in range(len(idxs) - 1):
-        s1 = (f"The most negative value in the objective function row is %f, making column %i the pivot column. "
-              f"\nAfter dividing the solution column by each corresponding value in the pivot column, the smallest "
-              f"non-zero value \nwas %f, making row %i the pivot row. "
-              f"\nThe pivot is therefore %f at [%i, %i]. After making the pivot column a unit vector, the resulting "
-              f"tableau is:\n\n" % (
-                  most_negative[i], most_negative_index[i] + 1, smallest_ratio[i], smallest_ratio_index[i] + 1,
-                  pivot[i], most_negative_index[i] + 1, smallest_ratio_index[i] + 1))
-        t = np.array_str(tableau[i + 1])
-        if i < len(idxs) - 2:
-            s2 = "\n\nSince there are still negative values in the objective function row, another step is required.\n"
-        else:
-            s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
-        message += s1 + t + s2
+        if idxs[i + 1] == 0:
+            s1 = (f"The most negative value in the objective function row is %f, making column %i the pivot column. "
+                  f"\nAfter dividing the solution column by each corresponding value in the pivot column, the smallest "
+                  f"non-zero value \nwas %f, making row %i the pivot row. "
+                  f"\nThe pivot is therefore %f at [%i, %i]. After making the pivot column a unit vector, the resulting"
+                  f" tableau is:\n\n" % (
+                      most_negative[i], most_negative_index[i] + 1, smallest_ratio[i], smallest_ratio_index[i] + 1,
+                      pivot[i], most_negative_index[i] + 1, smallest_ratio_index[i] + 1))
+            t = np.array_str(tableau[i + 1])
+            try:
+                if idxs[i + 2] == 0:
+                    s2 = "\n\nSince there are still negative values in the objective function row, another step is " \
+                         "required.\n "
+                else:
+                    s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
+            except:
+                s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
+            message += s1 + t + s2
 
-    message += str(solution)
+    message += str(solution_set[0])
+    s1 = ''
+    if len(solution_set) > 1:
+        s1 = "\n\nHowever, multiple solutions were found, since there are zeros under non unit x columns.\n"
+        for i in range(len(idxs - 1)):
+            if idxs[i] == 1:
+                s2 = (
+                        f"\nColumn %i is the next pivot column, since there is a 0 in the objective function row. "
+                        f"\nAfter dividing the solution column by each corresponding value in the pivot column, "
+                        f"the smallest "
+                        f"non-zero value \nwas %f, making row %i the pivot row. "
+                        f"\nThe pivot is therefore %f at [%i, %i]. After making the pivot column a unit vector, "
+                        f"the resulting "
+                        f" tableau is:\n\n" % (
+                            most_negative_index[i-1] + 1, smallest_ratio[i-1],
+                            smallest_ratio_index[i-1] + 1,
+                            pivot[i-1], most_negative_index[i-1] + 1, smallest_ratio_index[i-1] + 1))
+
+                t = np.array_str(tableau[i])
+                message += s1 + s2 + t
+                message += "\n\nAnd therefore the corresponding solution can be read off the tableau as:\n"
+                message += str(solution_set[i-1])
+        message += '\n\nFinally, the solution set is:\n\n' + str(solution_set)
+
 
     with open(filename, "w") as text_file:
         text_file.write(message)
-    print("logs saved to "+filename)
+    print("logs saved to " + filename)
