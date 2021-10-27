@@ -28,7 +28,7 @@ def line_to_dict(line, obj=False):
                     if len(char) == 2:
                         coeff = 1
                     else:
-                        coeff = int(char[0:-2])
+                        coeff = float(char[0:-2])
 
                     x_[char[-2:]] = sign * coeff
 
@@ -36,13 +36,13 @@ def line_to_dict(line, obj=False):
 
             if not obj:
                 if char == '=':
-                    x_['sol'] = int(line[idx + 1])
+                    x_['sol'] = float(line[idx + 1])
                     x_['s'] = 0
                 elif char == 'â‰¤':  # ASCII for less than or equal to
-                    x_['sol'] = int(line[idx + 1])
+                    x_['sol'] = float(line[idx + 1])
                     x_['s'] = 1
                 elif char == 'â‰¥':  # ASCII for greater than or equal to
-                    x_['sol'] = int(line[idx + 1])
+                    x_['sol'] = float(line[idx + 1])
                     x_['s'] = -1
         except:
             exit("The input is not in the correct form. Refer to readme.txt to see how to set out the input txt.")
@@ -51,12 +51,12 @@ def line_to_dict(line, obj=False):
 
 # Reads the text file and returns a tableau
 
-def read_txt():
+def read_txt(input_filename):
     """
     Reads a file input.txt in the current working directory and formats it into a tableau to be used in the solver.
     :return: The tableau, the problem type (maximum or minimum), and the variable names as a tuple.
     """
-    with open('input.txt') as f:
+    with open(input_filename) as f:
         lines = f.readlines()
     # Converting the lines into a list
     solve = lines[0]
@@ -146,7 +146,6 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
     step = np.array(step.tolist())
     most_negative, most_negative_index, smallest_ratio, smallest_ratio_index, pivot = [step[:, i] for i in range(5)]
 
-
     initial_message = "The initial Tableau was encoded as:\n\n"
     rows = ['Equation ' + str(i + 1) for i in range(len(tableau[0]) - 1)] + ['Objective Function']
     df = pd.DataFrame(data=tableau[0], columns=top_row, index=rows).to_string()
@@ -171,10 +170,14 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
                 s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
             message += s1 + t + s2
 
+    num_steps = sum([1 if i == 1 else 0 for i in idxs])
+    solution_counter = 1
     message += str(solution_set[0])
+
     s1 = ''
     if len(solution_set) > 1:
-        s1 = "\n\nHowever, multiple solutions were found, since there are zeros under non unit x columns.\n"
+        s1 = "\n\nHowever, multiple solutions were found, since there are zeros under non unit x columns.\n"#
+        counter = 0
         for i in range(len(idxs - 1)):
             if idxs[i] == 1:
                 s2 = (
@@ -185,16 +188,18 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
                         f"\nThe pivot is therefore %f at [%i, %i]. After making the pivot column a unit vector, "
                         f"the resulting "
                         f" tableau is:\n\n" % (
-                            most_negative_index[i-1] + 1, smallest_ratio[i-1],
-                            smallest_ratio_index[i-1] + 1,
-                            pivot[i-1], most_negative_index[i-1] + 1, smallest_ratio_index[i-1] + 1))
+                            most_negative_index[i - 1] + 1, smallest_ratio[i - 1],
+                            smallest_ratio_index[i - 1] + 1,
+                            pivot[i - 1], most_negative_index[i - 1] + 1, smallest_ratio_index[i - 1] + 1))
 
                 t = np.array_str(tableau[i])
                 message += s1 + s2 + t
                 message += "\n\nAnd therefore the corresponding solution can be read off the tableau as:\n"
-                message += str(solution_set[i-1])
-        message += '\n\nFinally, the solution set is:\n\n' + str(solution_set)
+                #print(i-num_steps-1)
+                message += str(solution_set[solution_counter])
+                solution_counter+=1
 
+        message += '\n\nFinally, the solution set is:\n\n' + str(solution_set)
 
     with open(filename, "w") as text_file:
         text_file.write(message)

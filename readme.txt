@@ -1,10 +1,18 @@
-The input file is set out to make it very easy insert a problem.
+This is a package that uses the Simplex method to solve linear optimisation problems. The input problem must be placed
+into a file named 'input.txt'.
+
+This algorithm can:
+- Solve maximisation problems for single or multiple optima
+- Solve Minimisation problems for single or multiple optima
+- Automatically add slack and surplus variables
+- Automatically add artificial variables
+
+The input file designed to make it very easy insert a problem.
 It automatically parses through the lines and converts the information into a tableau.
+
 Some important things to note are:
 - There must be spaces between variables and +/-/=/≤/≥ operators
 - z must have coefficient of 1
-- Coefficients must be integers
-
 
 Example input files:
 
@@ -26,3 +34,6 @@ z = 60x1 + 90x2 + 300x3
 x1 + x2 + x3 ≤ 600
 x1 + 3x2 ≤ 600
 2x1 + x3 ≤ 900
+
+The output file contains the tableau and steps at each iteration, explaining what the pivots are and how it found them.
+It has the solution at the bottom.

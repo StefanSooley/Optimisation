@@ -135,9 +135,10 @@ class Simplex:
         self.solution_set.append(self.solution.copy())
 
         # Find the solutions for the other optima (if any)
-        for i in self.optima_idxs:
-            solved, step = self.solve_maxim_step(i)
-            self.optima_idxs.remove(i)
-            self.find_solution()
-            self.logs.append([1, self.tableau.copy(), step])
 
+        for i in self.optima_idxs:
+            if i not in self.solution_cols:
+                solved, step = self.solve_maxim_step(i)
+                self.optima_idxs.remove(i)
+                self.find_solution()
+                self.logs.append([1, self.tableau.copy(), step])
