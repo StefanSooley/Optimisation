@@ -170,14 +170,12 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
                 s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
             message += s1 + t + s2
 
-    num_steps = sum([1 if i == 1 else 0 for i in idxs])
     solution_counter = 1
     message += str(solution_set[0])
 
-    s1 = ''
     if len(solution_set) > 1:
-        s1 = "\n\nHowever, multiple solutions were found, since there are zeros under non unit x columns.\n"#
-        counter = 0
+        s1 = "\n\nHowever, multiple solutions were found, since there are zeros under non unit x columns.\n"  #
+
         for i in range(len(idxs - 1)):
             if idxs[i] == 1:
                 s2 = (
@@ -195,11 +193,21 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
                 t = np.array_str(tableau[i])
                 message += s1 + s2 + t
                 message += "\n\nAnd therefore the corresponding solution can be read off the tableau as:\n"
-                #print(i-num_steps-1)
                 message += str(solution_set[solution_counter])
-                solution_counter+=1
+                solution_counter += 1
 
-        message += '\n\nFinally, the solution set is:\n\n' + str(solution_set)
+        # Turning the solution set into a general form.
+
+        general_solution = [str(idx + 1) + str(np.array(list(sol.values()))) for idx, sol in enumerate(solution_set)]
+        general_solution = ['a' + string + ' + ' if idx<len(solution_set)-1 else 'a' + string for idx,string in enumerate(general_solution)]
+        str_general_solution = ''.join(general_solution)
+
+        range_as = ' + '.join(['a'+str(i) for i in range(1,str_general_solution.count('a')+1)])
+        range_as = ('where %s = 1 '%range_as)
+
+
+        message += ('\n\nFinally, the general solution is:\n\n%s\n%s' % (str_general_solution, range_as))
+
 
     with open(filename, "w") as text_file:
         text_file.write(message)
