@@ -29,7 +29,7 @@ class Simplex:
             most_negative_index = int(most_negative_index)
 
         # If we manually want to force a column to pivot around (if there are multiple optima), then we use the
-        # column passed as an argument.
+        # column passed as an argument. Otherwise the most_negative_index is unchanged
 
         if manual_col >= 0:
             most_negative_index = manual_col
@@ -82,7 +82,7 @@ class Simplex:
             solved = True
         return solved, step
 
-    def solve_max(self):
+    def solve_max(self, print_solution=False):
         """
         Iterates through the Simplex method using the step function, and ends once a solved state is detected.
         Saves the logs each iteration to the Simplex.logs object.
@@ -94,6 +94,8 @@ class Simplex:
             solved, step = self.solve_maxim_step()
             self.logs.append([0, self.tableau.copy(), step])
         self.find_solution()
+        if print_solution:
+            print(self.solution_set)
 
 
         return self.solution_set
@@ -134,7 +136,7 @@ class Simplex:
         # Add the solution that is found to the set of solutions
         self.solution_set.append(self.solution.copy())
 
-        # Find the solutions for the other optima (if any)
+        # Find the solutions for the other optima (if any) using recursion
 
         for i in self.optima_idxs:
             if i not in self.solution_cols:

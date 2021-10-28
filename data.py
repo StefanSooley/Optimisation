@@ -131,7 +131,7 @@ def read_txt(input_filename):
     return tableau, solve, top_row
 
 
-def save_logs(logs, top_row, solution_set, filename='output.txt'):
+def save_logs(logs, top_row, solution_set, output_filename='output.txt'):
     """
     Saves the logs and solution into the output file (with steps).
     :param top_row: The names of the variables for the top row of the tableau.
@@ -198,17 +198,24 @@ def save_logs(logs, top_row, solution_set, filename='output.txt'):
 
         # Turning the solution set into a general form.
 
+        # Concatenate the solutions with coefficients.
         general_solution = [str(idx + 1) + str(np.array(list(sol.values()))) for idx, sol in enumerate(solution_set)]
-        general_solution = ['a' + string + ' + ' if idx<len(solution_set)-1 else 'a' + string for idx,string in enumerate(general_solution)]
+
+        # Name the coefficients
+        general_solution = ['a' + string + ' + ' if idx < len(solution_set) - 1 else 'a' + string for idx, string in
+                            enumerate(general_solution)]
+
+        # Turn the list of solutions with coefficients into a string
         str_general_solution = ''.join(general_solution)
 
-        range_as = ' + '.join(['a'+str(i) for i in range(1,str_general_solution.count('a')+1)])
-        range_as = ('where %s = 1 '%range_as)
+        # Including the limits on the coefficients
+        range_as = ' + '.join(['a' + str(i) for i in range(1, str_general_solution.count('a') + 1)])
 
+        # Turning the limits into a string
+        range_as = ('where %s = 1 ' % range_as)
 
         message += ('\n\nFinally, the general solution is:\n\n%s\n%s' % (str_general_solution, range_as))
 
-
-    with open(filename, "w") as text_file:
+    with open(output_filename, "w") as text_file:
         text_file.write(message)
-    print("logs saved to " + filename)
+    print("logs saved to " + output_filename)
