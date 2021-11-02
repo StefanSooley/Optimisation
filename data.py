@@ -129,11 +129,10 @@ def read_txt(input_filename):
         tableau = np.append(tableau, [obj_row], axis=0).astype(float)
     elif solve == 'min\n':
 
-        dual_s_strings = ['s' + str(i + 1) for i in range(num_xs)]
-        y_strings = ['y' + str(i + 1) for i in range(num_xs + num_ss - len(dual_s_strings))]
-        print(dual_s_strings, y_strings)
+        dual_x_strings = ['x' + str(i + 1) for i in range(num_xs)]
+        y_strings = ['y' + str(i + 1) for i in range(num_ss-num_xs)]
         matrix = np.array([x_strings + s_strings + ['sol']] * len(coeffs_lists))
-        top_row = np.array([x_strings + s_strings + ['z', 'sol']])[0]
+        top_row = np.array([y_strings + dual_x_strings + ['z', 'sol']])[0]
 
         # Fills the tableau frame with the values that were parsed in the previous function.
         for idx, i in enumerate(matrix):
@@ -153,6 +152,8 @@ def read_txt(input_filename):
         z_col[-1] = -1
         tableau = np.insert(tableau, -1, z_col, axis=1)
         tableau[-1] = tableau[-1] * -1
+    else:
+        exit("The problem type (max or min) was not specified clearly. Please refer to readme.txt for the correct format.")
 
     return tableau, solve, top_row
 
@@ -174,8 +175,9 @@ def save_logs(logs, top_row, solution_set, solve_type, output_filename='output.t
     initial_message = ''
     if solve_type == 'min\n':
         num_xs = sum([1 if i[0] == 'x' else 0 for i in top_row])
+        num_ys = sum([1 if i[0] == 'y' else 0 for i in top_row])
         x_strings = ['x' + str(i + 1) for i in range(num_xs)]
-        y_strings = ['y' + str(i + 1) for i in range(num_xs)]
+        y_strings = ['y' + str(i + 1) for i in range(num_ys)]
         top_row = y_strings + x_strings + ['z', 'sol']
         initial_message += ('The goal is to minimise the objective function. To use the simplex method, the dual'
                             ' must be calculated.\nAfter transposing and inserting values, ')

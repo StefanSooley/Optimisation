@@ -11,6 +11,7 @@ class Simplex:
         self.variables = variables
         self.solution_cols = []
         self.optima_idxs = []
+        self.x_count = 1
         print(self.tableau)
 
     def solve_maxim_step(self, manual_col=-1):
@@ -113,9 +114,13 @@ class Simplex:
         # Transposes the Tableau, to extract the columns, and iterates over them to find the solution columns.
         for idx, column in enumerate(np.transpose(self.tableau)):
 
+            if self.solve_type == 'min\n':
+                char = 'y'
+            else:
+                char = 'x'
             # If the column is an x variable
 
-            if self.variables[idx][0] == 'x':
+            if self.variables[idx][0] == char:
 
                 # If the set of the absolute values in each column is just {1,0} and the sum  is 1, it is a solution
                 # case, and add these values to the solution dictionary as a single solution.
@@ -126,9 +131,10 @@ class Simplex:
 
                     if self.solve_type == 'min\n':
 
-                        s_ = 's' + self.variables[idx][1:]
-                        s_index = np.where(self.variables == s_)[0]
-                        self.solution[self.variables[idx]] = np.transpose(self.tableau)[s_index[0]][-1]
+                        x_ = 'x' + str(self.x_count)
+                        self.x_count+=1
+                        s_index = np.where(self.variables == x_)[0]
+                        self.solution[x_] = np.transpose(self.tableau)[s_index[0]][-1]
 
                     else:
                         index = np.where(column == (1 or -1))
@@ -136,11 +142,11 @@ class Simplex:
 
                 # In the case where it isn't a unit column, but the objective function row has a 0 (multiple optima)
 
-                elif column[-1] == 0:
+                elif column[-1] == 0 and char == 'x':
                     self.solution[self.variables[idx]] = 0
                     self.optima_idxs.append(idx)
 
-                else:
+                elif char == 'x':
                     self.solution[self.variables[idx]] = 0
 
         # The bottom right value is always the solution.
