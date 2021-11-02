@@ -6,6 +6,6 @@ if __name__ == '__main__':
 
     init_tableau, solve_type, top_row = read_txt(input_filename='input.txt')
     problem = Simplex(init_tableau, solve_type, top_row)
-    solution = problem.solve_max(print_solution=True)
+    solution = problem.solve(print_solution=True)
     logs = problem.logs
-    save_logs(logs, top_row, solution, output_filename='output.txt')
+    save_logs(logs, top_row, solution, solve_type, output_filename='output.txt')

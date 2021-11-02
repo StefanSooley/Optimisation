@@ -11,6 +11,7 @@ class Simplex:
         self.variables = variables
         self.solution_cols = []
         self.optima_idxs = []
+        print(self.tableau)
 
     def solve_maxim_step(self, manual_col=-1):
         """
@@ -82,21 +83,24 @@ class Simplex:
             solved = True
         return solved, step
 
-    def solve_max(self, print_solution=False):
+    def solve(self, print_solution=False):
         """
         Iterates through the Simplex method using the step function, and ends once a solved state is detected.
         Saves the logs each iteration to the Simplex.logs object.
-        :returns: The solution for the x variables
+        :returns: The solution for the x variables in a list of dictionaries (for multiple optima).
         """
+
+        # If it is a minimisation problem then the dual is solved (transposition).
+
         solved = False
         idx = 1
         while not solved:
             solved, step = self.solve_maxim_step()
             self.logs.append([0, self.tableau.copy(), step])
+            print(self.tableau)
         self.find_solution()
         if print_solution:
             print(self.solution_set)
-
 
         return self.solution_set
 
@@ -117,9 +121,18 @@ class Simplex:
                 # case, and add these values to the solution dictionary as a single solution.
 
                 if set(abs(column)) == {1, 0} and np.sum(abs(column)) == 1:
-                    index = np.where(column == (1 or -1))
+
                     self.solution_cols.append(idx)
-                    self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
+
+                    if self.solve_type == 'min\n':
+
+                        s_ = 's' + self.variables[idx][1:]
+                        s_index = np.where(self.variables == s_)[0]
+                        self.solution[self.variables[idx]] = np.transpose(self.tableau)[s_index[0]][-1]
+
+                    else:
+                        index = np.where(column == (1 or -1))
+                        self.solution[self.variables[idx]] = self.tableau[index[0][0], -1]
 
                 # In the case where it isn't a unit column, but the objective function row has a 0 (multiple optima)
 

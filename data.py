@@ -108,30 +108,56 @@ def read_txt(input_filename):
     x_strings = ['x' + str(i + 1) for i in range(num_xs)]
     s_strings = ['s' + str(i + 1) for i in range(num_ss)]
 
-    # Constructs the tableau with the variables that make up the problem, and copies the top row (for use later).
-    tableau = np.array([x_strings + s_strings + ['z', 'sol']] * len(coeffs_lists))
-    top_row = tableau[0].copy()
+    if solve == 'max\n':
+        # Constructs the tableau with the variables that make up the problem, and copies the top row (for use later).
+        tableau = np.array([x_strings + s_strings + ['z', 'sol']] * len(coeffs_lists))
+        top_row = tableau[0].copy()
 
-    # Fills the tableau frame with the values that were parsed in the previous function.
-    for idx, i in enumerate(tableau):
-        for jdx, j in enumerate(i):
-            tableau[idx][jdx] = coeffs_lists[idx][j]
+        # Fills the tableau frame with the values that were parsed in the previous function.
+        for idx, i in enumerate(tableau):
+            for jdx, j in enumerate(i):
+                tableau[idx][jdx] = coeffs_lists[idx][j]
 
-    # Adds the objective function to the bottom of the tableau.
-    obj_xs = [0] * len(x_strings)
-    for idx, x in enumerate(x_strings):
-        try:
-            obj_xs[idx] = -1 * obj_func[x]
-        except:
-            obj_xs[idx] = 0
-    # obj_xs = [-1 * obj_func[i] for i in x_strings]
-    obj_row = obj_xs + [0] * len(s_strings) + [1, 0]
-    tableau = np.append(tableau, [obj_row], axis=0).astype(float)
+        # Adds the objective function to the bottom of the tableau.
+        obj_xs = [0] * len(x_strings)
+        for idx, x in enumerate(x_strings):
+            try:
+                obj_xs[idx] = -1 * obj_func[x]
+            except:
+                obj_xs[idx] = 0
+        obj_row = obj_xs + [0] * len(s_strings) + [1, 0]
+        tableau = np.append(tableau, [obj_row], axis=0).astype(float)
+    elif solve == 'min\n':
+
+        dual_s_strings = ['s' + str(i + 1) for i in range(num_xs)]
+        y_strings = ['y' + str(i + 1) for i in range(num_xs + num_ss - len(dual_s_strings))]
+        print(dual_s_strings, y_strings)
+        matrix = np.array([x_strings + s_strings + ['sol']] * len(coeffs_lists))
+        top_row = np.array([x_strings + s_strings + ['z', 'sol']])[0]
+
+        # Fills the tableau frame with the values that were parsed in the previous function.
+        for idx, i in enumerate(matrix):
+            for jdx, j in enumerate(i):
+                matrix[idx][jdx] = coeffs_lists[idx][j]
+
+        obj_xs = [0] * len(x_strings)
+        for idx, x in enumerate(x_strings):
+            try:
+                obj_xs[idx] = obj_func[x]
+            except:
+                obj_xs[idx] = 0
+        obj_row = obj_xs + [0] * (len(s_strings) + 1)
+        matrix = np.append(matrix, [obj_row], axis=0).astype(float)
+        tableau = matrix.transpose()
+        z_col = np.array([0] * len(tableau))
+        z_col[-1] = -1
+        tableau = np.insert(tableau, -1, z_col, axis=1)
+        tableau[-1] = tableau[-1] * -1
 
     return tableau, solve, top_row
 
 
-def save_logs(logs, top_row, solution_set, output_filename='output.txt'):
+def save_logs(logs, top_row, solution_set, solve_type, output_filename='output.txt'):
     """
     Saves the logs and solution into the output file (with steps).
     :param top_row: The names of the variables for the top row of the tableau.
@@ -145,8 +171,15 @@ def save_logs(logs, top_row, solution_set, output_filename='output.txt'):
 
     step = np.array(step.tolist())
     most_negative, most_negative_index, smallest_ratio, smallest_ratio_index, pivot = [step[:, i] for i in range(5)]
-
-    initial_message = "The initial Tableau was encoded as:\n\n"
+    initial_message = ''
+    if solve_type == 'min\n':
+        num_xs = sum([1 if i[0] == 'x' else 0 for i in top_row])
+        x_strings = ['x' + str(i + 1) for i in range(num_xs)]
+        y_strings = ['y' + str(i + 1) for i in range(num_xs)]
+        top_row = y_strings + x_strings + ['z', 'sol']
+        initial_message += ('The goal is to minimise the objective function. To use the simplex method, the dual'
+                            ' must be calculated.\nAfter transposing and inserting values, ')
+    initial_message += "The initial Tableau was encoded as:\n\n"
     rows = ['Equation ' + str(i + 1) for i in range(len(tableau[0]) - 1)] + ['Objective Function']
     df = pd.DataFrame(data=tableau[0], columns=top_row, index=rows).to_string()
     message = initial_message + df + '\n\n\n'
@@ -163,7 +196,7 @@ def save_logs(logs, top_row, solution_set, output_filename='output.txt'):
             try:
                 if idxs[i + 2] == 0:
                     s2 = "\n\nSince there are still negative values in the objective function row, another step is " \
-                         "required.\n "
+                         "required.\n"
                 else:
                     s2 = "\n\nThere are no negative values in the objective function row, making the solution:\n"
             except:
