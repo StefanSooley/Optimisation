@@ -137,8 +137,10 @@ def read_txt(input_filename):
 
         top_row = np.array([y_strings + dual_x_strings + ['z', 'sol']])[0]
         # Fills the tableau frame with the values that were parsed in the previous function.
+
         for idx, i in enumerate(tableau):
             for jdx, j in enumerate(i):
+                print(coeffs_lists[idx], j)
                 tableau[idx][jdx] = coeffs_lists[idx][j]
 
         # detect the non-negativity rows
