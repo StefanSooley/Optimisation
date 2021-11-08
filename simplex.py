@@ -132,8 +132,9 @@ class Simplex:
                     if self.solve_type == 'min\n':
 
                         x_ = 'x' + str(self.x_count)
-                        self.x_count+=1
+                        self.x_count += 1
                         s_index = np.where(self.variables == x_)[0]
+
                         self.solution[x_] = np.transpose(self.tableau)[s_index[0]][-1]
 
                     else:
@@ -148,6 +149,14 @@ class Simplex:
 
                 elif char == 'x':
                     self.solution[self.variables[idx]] = 0
+
+        if char == 'y':
+            for vars in self.variables:
+                if vars[0] == 'x':
+                    try:
+                        self.solution[vars]
+                    except:
+                        self.solution[vars] = 0
 
         # The bottom right value is always the solution.
         self.solution['z'] = self.tableau[-1][-1]
