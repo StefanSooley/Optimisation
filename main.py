@@ -5,7 +5,7 @@ from simplex import *
 def main():
     np.set_printoptions(precision=5, suppress=True)
 
-    init_tableau, solve_type, top_row = read_txt(input_filename='input.txt')
+    init_tableau, solve_type, top_row = read_txt(input_filename='project input.txt')
     problem = Simplex(init_tableau, solve_type, top_row)
     solution = problem.solve(print_solution=True)
     logs = problem.logs

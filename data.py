@@ -110,7 +110,7 @@ def read_txt(input_filename):
 
     if solve == 'max\n':
         # Constructs the tableau with the variables that make up the problem, and copies the top row (for use later).
-        tableau = np.array([x_strings + s_strings + ['z', 'sol']] * len(coeffs_lists))
+        tableau = np.array([x_strings + s_strings + ['z', 'sol']] * len(coeffs_lists),dtype='object')
         top_row = tableau[0].copy()
 
         # Fills the tableau frame with the values that were parsed in the previous function.
@@ -131,13 +131,20 @@ def read_txt(input_filename):
 
         dual_x_strings = ['x' + str(i + 1) for i in range(num_xs)]
         y_strings = ['y' + str(i + 1) for i in range(num_ss-num_xs)]
-        matrix = np.array([x_strings + s_strings + ['sol']] * len(coeffs_lists))
+        matrix = np.array([x_strings + s_strings + ['sol']] * len(coeffs_lists), dtype='object')
         top_row = np.array([y_strings + dual_x_strings + ['z', 'sol']])[0]
 
         # Fills the tableau frame with the values that were parsed in the previous function.
         for idx, i in enumerate(matrix):
             for jdx, j in enumerate(i):
-                matrix[idx][jdx] = coeffs_lists[idx][j]
+                if j[0] == 's' and j!='sol':
+                    matrix[idx][jdx] = -1*coeffs_lists[idx][j]
+                else:
+                    matrix[idx][jdx] = coeffs_lists[idx][j]
+
+                if j == 'sol':
+                    print(coeffs_lists[idx][j])
+                    print(matrix[idx][jdx])
 
         obj_xs = [0] * len(x_strings)
         for idx, x in enumerate(x_strings):
@@ -155,6 +162,7 @@ def read_txt(input_filename):
     else:
         exit("The problem type (max or min) was not specified clearly. Please refer to readme.txt for the correct format.")
 
+    print(tableau)
     return tableau, solve, top_row
 
 
@@ -194,7 +202,7 @@ def save_logs(logs, top_row, solution_set, solve_type, output_filename='output.t
                   f" tableau is:\n\n" % (
                       most_negative[i], most_negative_index[i] + 1, smallest_ratio[i], smallest_ratio_index[i] + 1,
                       pivot[i], most_negative_index[i] + 1, smallest_ratio_index[i] + 1))
-            t = np.array_str(tableau[i + 1])
+            t = pd.DataFrame(data=tableau[i+1], columns=top_row, index=rows).to_string()
             try:
                 if idxs[i + 2] == 0:
                     s2 = "\n\nSince there are still negative values in the objective function row, another step is " \
@@ -225,7 +233,7 @@ def save_logs(logs, top_row, solution_set, solve_type, output_filename='output.t
                             smallest_ratio_index[i - 1] + 1,
                             pivot[i - 1], most_negative_index[i - 1] + 1, smallest_ratio_index[i - 1] + 1))
 
-                t = np.array_str(tableau[i])
+                t = pd.DataFrame(data=tableau[i], columns=top_row, index=rows).to_string()
                 message += s1 + s2 + t
                 message += "\n\nAnd therefore the corresponding solution can be read off the tableau as:\n"
                 message += str(solution_set[solution_counter])
